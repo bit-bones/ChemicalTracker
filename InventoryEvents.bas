@@ -12,7 +12,7 @@ Const EVT_INITIAL_FULL As String = "INITIAL_FULL"
 Const EVT_INITIAL_EMPTY As String = "INITIAL_EMPTY"
 Const EVT_INITIAL_PARTIAL As String = "INITIAL_PARTIAL"  ' For NaOH only
 Const EVT_DELIVERY As String = "DELIVERY"
-Const EVT_OPEN As String = "PARTIAL"            ' Converts Full -> Partial (NaOH only)
+Const EVT_OPEN As String = "OPEN"            ' Converts Full -> Partial (NaOH only)
 Const EVT_EMPTY As String = "EMPTY"          ' H2O2: Full -> Empty; NaOH:  Partial -> Empty
 Const EVT_PICKUP As String = "PICKUP"
 
@@ -950,6 +950,7 @@ Private Function PromptForNonNegativeNumber(promptText As String, titleText As S
 End Function
 
 ' ===================== END MODULE =====================
+
 
 
 
