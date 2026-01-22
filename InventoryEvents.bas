@@ -366,7 +366,7 @@ Private Sub LogEmpty(chemID As String, chemName As String)
     Dim availType As String
     
     ' Determine what we're converting based on chemical
-    If chemID = CHEM_NAOH Then
+    If StrComp(chemID, CHEM_NAOH, vbTextCompare) = 0 Then
         ' NaOH:  Empty converts Partial -> Empty
         availCount = GetPartialCount(chemID)
         availType = "PARTIAL"
@@ -398,7 +398,7 @@ Private Sub LogEmpty(chemID As String, chemName As String)
         GoTo RestoreSheet
     End If
     
-    If chemID = CHEM_NAOH Then
+    If StrComp(chemID, CHEM_NAOH, vbTextCompare) = 0 Then
         AddEvent chemID, EVT_EMPTY, qty, "Marked " & qty & " partial tote(s) as empty"
     Else
         AddEvent chemID, EVT_EMPTY, qty, "Marked " & qty & " full tote(s) as empty"
@@ -697,7 +697,7 @@ End Function
 Private Function GetFullCount(chemID As String) As Long
     ' For H2O2: Fulls = INITIAL_FULL + DELIVERY - EMPTY + FIX_FULL
     ' For NaOH:  Fulls = INITIAL_FULL + DELIVERY - OPEN + FIX_FULL (OPEN converts Full -> Partial)
-    If chemID = CHEM_NAOH Then
+    If StrComp(chemID, CHEM_NAOH, vbTextCompare) = 0 Then
         GetFullCount = SumEvents(chemID, EVT_INITIAL_FULL) _
                      + SumEvents(chemID, EVT_DELIVERY) _
                      - SumEvents(chemID, EVT_OPEN) _
@@ -774,7 +774,7 @@ Public Sub AddInitialStock_Sequential()
         
         ' For NaOH, also prompt for partial count
         Dim partialQty As Variant
-        If chem = CHEM_NAOH Then
+        If StrComp(chem, CHEM_NAOH, vbTextCompare) = 0 Then
             partialQty = PromptForNonNegativeNumber("Enter PARTIAL (open) tote count for " & chemName & " (" & chem & "):", "Initial Partial for " & chemName, 0)
             If partialQty = -1 Then GoTo RestoreSheet
         Else
@@ -786,7 +786,7 @@ Public Sub AddInitialStock_Sequential()
         If emptyQty = -1 Then GoTo RestoreSheet
         
         If CLng(fullQty) >= 0 Then AddEventWithBatch chem, EVT_INITIAL_FULL, CLng(fullQty), "Initial full stock", batchID, False
-        If chem = CHEM_NAOH And CLng(partialQty) > 0 Then AddEventWithBatch chem, EVT_INITIAL_PARTIAL, CLng(partialQty), "Initial partial stock", batchID, False
+        If StrComp(chem, CHEM_NAOH, vbTextCompare) = 0 And CLng(partialQty) > 0 Then AddEventWithBatch chem, EVT_INITIAL_PARTIAL, CLng(partialQty), "Initial partial stock", batchID, False
         If CLng(emptyQty) > 0 Then AddEventWithBatch chem, EVT_INITIAL_EMPTY, CLng(emptyQty), "Initial empties on site", batchID, False
     Next i
     
@@ -849,7 +849,7 @@ Public Sub FixCounts_AddAdjustments()
         Dim curFull As Long, curPartial As Long, curEmpty As Long
         curFull = GetFullCount(chem)
         curEmpty = GetEmptyCount(chem)
-        If chem = CHEM_NAOH Then
+        If StrComp(chem, CHEM_NAOH, vbTextCompare) = 0 Then
             curPartial = GetPartialCount(chem)
         Else
             curPartial = 0
@@ -865,7 +865,7 @@ Public Sub FixCounts_AddAdjustments()
         
         ' For NaOH, also prompt for partial count
         Dim truePartial As Variant
-        If chem = CHEM_NAOH Then
+        If StrComp(chem, CHEM_NAOH, vbTextCompare) = 0 Then
             truePartial = PromptForNonNegativeNumber( _
                 "Current PARTIAL for " & chemName & " (" & chem & ") is " & curPartial & "." & vbCrLf & _
                 "Enter true PARTIAL tote count:", _
@@ -893,7 +893,7 @@ Public Sub FixCounts_AddAdjustments()
             AddEventWithBatch chem, EVT_FIX_FULL, dFull, "Fixed FULL (" & chemName & ") count from " & curFull & " to " & CLng(trueFull), batchID, False
             anyLogged = True
         End If
-        If chem = CHEM_NAOH And dPartial <> 0 Then
+        If StrComp(chem, CHEM_NAOH, vbTextCompare) = 0 And dPartial <> 0 Then
             AddEventWithBatch chem, EVT_FIX_PARTIAL, dPartial, "Fixed PARTIAL (" & chemName & ") count from " & curPartial & " to " & CLng(truePartial), batchID, False
             anyLogged = True
         End If
