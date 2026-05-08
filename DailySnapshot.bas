@@ -1,6 +1,5 @@
 Attribute VB_Name = "DailySnapshot"
 
-
 Option Explicit
 
 Const TRANSACTIONS_SHEET As String = "Transactions"
@@ -456,10 +455,12 @@ Private Function HasFullPriorMonthHistory(ws As Worksheet, today As Date) As Boo
     End If
 End Function
 
-' Count empties (EMPTY + FIX_EMPTY) for the previous week (Mon-Sun) ending before "today".
+' Count empties (EMPTY only) for the previous week (Mon-Sun) ending before "today".
 Private Sub GetWeeklyEmpties(today As Date, ByRef h2o2Count As Long, ByRef naohCount As Long)
     Dim startDate As Date, endDate As Date
     Dim dow As Integer
+
+    today = Int(today) ' Strip time so range lands on calendar-day boundaries
 
     ' Find start of this week (Monday)
     dow = Weekday(today, vbMonday)      ' Monday=1, Sunday=7
@@ -472,10 +473,12 @@ Private Sub GetWeeklyEmpties(today As Date, ByRef h2o2Count As Long, ByRef naohC
     Call SumEmptiesInDateRange(startDate, endDate, h2o2Count, naohCount)
 End Sub
 
-' Count empties (EMPTY + FIX_EMPTY) for the previous month ending before "today".
+' Count empties (EMPTY only) for the previous month ending before "today".
 Private Sub GetMonthlyEmpties(today As Date, ByRef h2o2Count As Long, ByRef naohCount As Long)
     Dim prevMonth As Date
     Dim startDate As Date, endDate As Date
+
+    today = Int(today) ' Strip time so range lands on calendar-day boundaries
 
     ' Previous month:  use DateSerial logic
     prevMonth = DateSerial(Year(today), Month(today) - 1, 1)
@@ -485,9 +488,8 @@ Private Sub GetMonthlyEmpties(today As Date, ByRef h2o2Count As Long, ByRef naoh
     Call SumEmptiesInDateRange(startDate, endDate, h2o2Count, naohCount)
 End Sub
 
-' Sum EMPTY and FIX_EMPTY events in tblTransactions for each chemical over a date range (inclusive)
-' New behavior: counts only positive Qty values (<=0 ignored). This uses actual EMPTY/FIX_EMPTY transactions
-' instead of computing differences in the snapshot log.
+' Sum EMPTY events in tblTransactions for each chemical over a date range (inclusive).
+' Counts only positive Qty values (<=0 ignored) so correction rows are excluded from snapshot totals.
 Private Sub SumEmptiesInDateRange(startDate As Date, endDate As Date, ByRef h2o2Count As Long, ByRef naohCount As Long)
     On Error GoTo SafeZero
     Dim ws As Worksheet
@@ -507,10 +509,10 @@ Private Sub SumEmptiesInDateRange(startDate As Date, endDate As Date, ByRef h2o2
     For i = 1 To lo.DataBodyRange.Rows.count
         dt = lo.DataBodyRange.Rows(i).Columns(lo.ListColumns("DateTime").Index).Value
         If IsDate(dt) Then
-            If CDate(dt) >= startDate And CDate(dt) <= endDate Then
+            If Int(CDate(dt)) >= Int(startDate) And Int(CDate(dt)) <= Int(endDate) Then
                 evt = CStr(lo.DataBodyRange.Rows(i).Columns(lo.ListColumns("Event").Index).Value)
-                ' Consider only EMPTY and FIX_EMPTY events
-                If (evt = EVT_EMPTY Or evt = EVT_FIX_EMPTY) Then
+                ' Consider only true EMPTY conversion events.
+                If evt = EVT_EMPTY Then
                     qty = lo.DataBodyRange.Rows(i).Columns(lo.ListColumns("Qty").Index).Value
                     ' Only count positive numeric Qty values; ignore zero/negative and non-numeric
                     If IsNumeric(qty) Then
@@ -534,6 +536,4 @@ SafeZero:
     h2o2Count = 0
     naohCount = 0
 End Sub
-
-
 

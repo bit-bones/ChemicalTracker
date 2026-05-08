@@ -2,12 +2,12 @@ Attribute VB_Name = "UpdateSnapshotNotes"
 
 Option Explicit
 
-' Refresh existing DailySnapshot note lines (Weekly / Monthly) to use the new
-' "count positive EMPTY and FIX_EMPTY transactions" logic.
+' Refresh existing DailySnapshot note lines (Weekly / Monthly) to use
+' "count positive EMPTY transactions only" logic.
 '
 '  - Find rows on the DailySnapshot sheet whose Note contains "Weekly snapshot"
 '    and/or "Monthly snapshot" (ignores "Initial snapshot").
-'  - Recompute the counts by summing actual EMPTY and FIX_EMPTY transactions
+'  - Recompute the counts by summing actual EMPTY transactions
 '    in tblTransactions for the same date ranges the snapshot code uses.
 '  - Replace the Note cell for those rows with updated phrasing:
 '       "Weekly snapshot.    X H2O2 and Y NAOH totes emptied last week."
@@ -22,7 +22,6 @@ Const TRANSACTIONS_TABLE As String = "tblTransactions"
 Const SNAPSHOT_SHEET As String = "DailySnapshot"
 
 Const EVT_EMPTY As String = "EMPTY"
-Const EVT_FIX_EMPTY As String = "FIX_EMPTY"
 
 Const CHEM_H2O2 As String = "H2O2"
 Const CHEM_NAOH As String = "NAOH"
@@ -107,6 +106,8 @@ Private Sub GetWeeklyEmptiesForSnapshot(today As Date, ByRef h2o2Count As Long, 
     Dim dow As Integer
     Dim startDate As Date, endDate As Date
     
+    today = Int(today) ' Strip time so range lands on calendar-day boundaries
+    
     dow = Weekday(today, vbMonday) ' Monday = 1
     startDate = DateAdd("d", 1 - dow, today) ' Monday of this week
     endDate = DateAdd("d", -1, startDate)    ' Sunday of prior week
@@ -120,6 +121,8 @@ Private Sub GetMonthlyEmptiesForSnapshot(today As Date, ByRef h2o2Count As Long,
     Dim prevMonth As Date
     Dim startDate As Date, endDate As Date
     
+    today = Int(today) ' Strip time so range lands on calendar-day boundaries
+    
     prevMonth = DateSerial(Year(today), Month(today) - 1, 1)
     startDate = prevMonth
     endDate = DateSerial(Year(prevMonth), Month(prevMonth) + 1, 0) ' last day of previous month
@@ -127,7 +130,7 @@ Private Sub GetMonthlyEmptiesForSnapshot(today As Date, ByRef h2o2Count As Long,
     Call SumPositiveEmptyEventsInRange(startDate, endDate, h2o2Count, naohCount)
 End Sub
 
-' Sum EMPTY and FIX_EMPTY events in tblTransactions between startDate and endDate inclusive.
+' Sum EMPTY events in tblTransactions between startDate and endDate inclusive.
 ' Only positive numeric Qty values are counted (<=0 ignored).
 Private Sub SumPositiveEmptyEventsInRange(startDate As Date, endDate As Date, ByRef h2o2Count As Long, ByRef naohCount As Long)
     On Error GoTo SafeZero
@@ -150,10 +153,10 @@ Private Sub SumPositiveEmptyEventsInRange(startDate As Date, endDate As Date, By
         dt = lo.DataBodyRange.Rows(i).Columns(lo.ListColumns("DateTime").Index).Value
         If Not IsDate(dt) Then GoTo NextRowLoop
         
-        If CDate(dt) < startDate Or CDate(dt) > endDate Then GoTo NextRowLoop
+        If Int(CDate(dt)) < Int(startDate) Or Int(CDate(dt)) > Int(endDate) Then GoTo NextRowLoop
         
         evt = CStr(lo.DataBodyRange.Rows(i).Columns(lo.ListColumns("Event").Index).Value)
-        If Not (evt = EVT_EMPTY Or evt = EVT_FIX_EMPTY) Then GoTo NextRowLoop
+        If evt <> EVT_EMPTY Then GoTo NextRowLoop
         
         qty = lo.DataBodyRange.Rows(i).Columns(lo.ListColumns("Qty").Index).Value
         If Not IsNumeric(qty) Then GoTo NextRowLoop
@@ -174,4 +177,5 @@ SafeZero:
     h2o2Count = 0
     naohCount = 0
 End Sub
+
 
