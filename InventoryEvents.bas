@@ -268,7 +268,7 @@ Private Sub UpdateLastUpdatedCell()
     ProtectSheet wsMain
 End Sub
 
-' Remove snapshot that matches the date of the transaction (columns A-F only)
+' Remove snapshot that matches the date of the transaction (columns A-G)
 Private Sub RemoveSnapshotForDate(transactionDate As Date)
     Dim ws As Worksheet
     Dim lastRow As Long, i As Long
@@ -296,12 +296,12 @@ Private Sub RemoveSnapshotForDate(transactionDate As Date)
                 ' Check if row above is a header row (same values as row 1)
                 If i > 2 Then
                     If ws.Cells(i - 1, "A").Value = ws.Cells(1, "A").Value Then
-                        ' Clear the header row columns A-F only (don't delete entire row)
-                        ws.Range("A" & (i - 1) & ":F" & (i - 1)).ClearContents
+                        ' Clear the header row columns A-G (don't delete entire row)
+                        ws.Range("A" & (i - 1) & ":G" & (i - 1)).ClearContents
                     End If
                 End If
-                ' Clear the snapshot row columns A-F only (don't delete entire row)
-                ws.Range("A" & i & ":F" & i).ClearContents
+                ' Clear the snapshot row columns A-G (don't delete entire row)
+                ws.Range("A" & i & ":G" & i).ClearContents
                 Exit For
             End If
         End If
