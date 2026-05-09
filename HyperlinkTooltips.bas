@@ -85,6 +85,7 @@ End Sub
 Private Function GetMacroForButton(shapeName As String) As String
     Select Case shapeName
         Case "btnUndoMyLastTransaction":  GetMacroForButton = "UndoMyLastTransaction"
+        Case "btnManualSnapshot": GetMacroForButton = "ManualSnapshot"
         Case "btnDeliveryH2O2": GetMacroForButton = "Delivery_H2O2"
         Case "btnEmptyH2O2": GetMacroForButton = "Empty_H2O2"
         Case "btnDeliveryNaOH": GetMacroForButton = "Delivery_NaOH"
@@ -102,6 +103,10 @@ Private Function GetTooltipForInfoIcon(iconName As String) As String
         Case "Info_Undo"
             GetTooltipForInfoIcon = " - UNDO - " & vbLf & _
                                     "Remove your most recent transaction."
+
+        Case "Info_ManualSnapshot"
+            GetTooltipForInfoIcon = " - MANUAL SNAPSHOT - " & vbLf & _
+                                    "Create today's daily snapshot without logging a transaction."
 
         Case "Info_H2o2Delivery"
             GetTooltipForInfoIcon = " - H2O2 DELIVERY - " & vbLf & _
