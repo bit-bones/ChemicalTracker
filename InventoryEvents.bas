@@ -67,8 +67,8 @@ Public Sub UndoMyLastTransaction()
     Set lo = ThisWorkbook.Worksheets(TRANSACTIONS_SHEET).ListObjects(TRANSACTIONS_TABLE)
     
     Dim userName As String
-    userName = Environ$("Username")
-    If Len(Trim(userName)) = 0 Then userName = Application.userName
+    userName = Application.userName
+    If Len(Trim(userName)) = 0 Then userName = Environ$("Username")
     
     Dim i As Long
     Dim lr As ListRow
@@ -597,7 +597,7 @@ Private Sub AddEvent(chemID As String, evt As String, qty As Long, noteText As S
         .Range(lo.ListColumns("ChemicalID").Index).Value = chemID
         .Range(lo.ListColumns("Event").Index).Value = evt
         .Range(lo.ListColumns("Qty").Index).Value = qty
-        If ColumnExists(lo, "Technician") Then .Range(lo.ListColumns("Technician").Index).Value = Environ$("Username")
+        If ColumnExists(lo, "Technician") Then .Range(lo.ListColumns("Technician").Index).Value = Application.userName
         If ColumnExists(lo, "Note") Then .Range(lo.ListColumns("Note").Index).Value = noteText
         If ColumnExists(lo, "BatchID") Then .Range(lo.ListColumns("BatchID").Index).Value = batchID
         If ColumnExists(lo, "TriggeredSnapshot") Then .Range(lo.ListColumns("TriggeredSnapshot").Index).Value = False
@@ -640,7 +640,7 @@ Private Sub AddEventWithBatch(chemID As String, evt As String, qty As Long, note
         .Range(lo.ListColumns("ChemicalID").Index).Value = chemID
         .Range(lo.ListColumns("Event").Index).Value = evt
         .Range(lo.ListColumns("Qty").Index).Value = qty
-        If ColumnExists(lo, "Technician") Then .Range(lo.ListColumns("Technician").Index).Value = Environ$("Username")
+        If ColumnExists(lo, "Technician") Then .Range(lo.ListColumns("Technician").Index).Value = Application.userName
         If ColumnExists(lo, "Note") Then .Range(lo.ListColumns("Note").Index).Value = noteText
         If ColumnExists(lo, "BatchID") Then .Range(lo.ListColumns("BatchID").Index).Value = batchID
         If ColumnExists(lo, "TriggeredSnapshot") Then .Range(lo.ListColumns("TriggeredSnapshot").Index).Value = triggeredSnapshot
