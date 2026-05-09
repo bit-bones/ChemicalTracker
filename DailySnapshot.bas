@@ -148,6 +148,20 @@ Public Sub MaybeLogDailySnapshot()
     result = MaybeLogDailySnapshotWithReturn()
 End Sub
 
+' === PUBLIC: manually trigger a daily snapshot from a button ===
+' Uses the same logic as the automatic snapshot: skips if one already exists today,
+' applies weekly/monthly notes when applicable.
+Public Sub ManualSnapshot()
+    Dim snapshotCreated As Boolean
+    snapshotCreated = MaybeLogDailySnapshotWithReturn()
+
+    If snapshotCreated Then
+        MsgBox "Snapshot logged successfully.", vbInformation, "Manual Snapshot"
+    Else
+        MsgBox "A snapshot for today already exists. No new snapshot was created.", vbInformation, "Manual Snapshot"
+    End If
+End Sub
+
 ' === OPTIONAL PUBLIC: log an explicit "Initial snapshot" that never counts as weekly/monthly ===
 Public Sub LogInitialSnapshot()
     Dim ws As Worksheet
