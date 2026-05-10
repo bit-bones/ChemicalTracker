@@ -4,25 +4,28 @@ Option Explicit
 
 Public Sub SetupInfoTooltips()
     Dim ws As Worksheet
+    Dim count As Long
+    
+    count = 0
+    
+    For Each ws In ThisWorkbook.Worksheets
+        count = count + SetupInfoTooltipsForSheet(ws)
+    Next ws
+    
+    CleanupLegacyHyperlinkArtifacts
+    
+    MsgBox count & " info tooltips configured!" & vbCrLf & vbCrLf & _
+           "- Hover over (i) icon = instant tooltip" & vbCrLf & _
+           "- Click button = runs macro", vbInformation
+End Sub
+
+Private Function SetupInfoTooltipsForSheet(ws As Worksheet) As Long
     Dim shp As Shape
     Dim tipText As String
     Dim count As Long
     
-    On Error Resume Next
-    Set ws = ThisWorkbook.Worksheets("Inventory")
-    On Error GoTo 0
-    
-    If ws Is Nothing Then
-        MsgBox "Inventory not found!", vbExclamation
-        Exit Sub
-    End If
-    
     UnprotectSheet ws
-    
     CleanupMainButtons ws
-    
-    ' Tooltips on the info icons
-    count = 0
     
     For Each shp In ws.Shapes
         tipText = GetTooltipForInfoIcon(shp.Name)
@@ -45,11 +48,8 @@ Public Sub SetupInfoTooltips()
     Next shp
     
     ProtectSheet ws
-    
-    MsgBox count & " info tooltips configured!" & vbCrLf & vbCrLf & _
-           "- Hover over (i) icon = instant tooltip" & vbCrLf & _
-           "- Click button = runs macro", vbInformation
-End Sub
+    SetupInfoTooltipsForSheet = count
+End Function
 
 Private Sub CleanupMainButtons(ws As Worksheet)
     Dim shp As Shape
@@ -66,14 +66,16 @@ Private Sub CleanupMainButtons(ws As Worksheet)
             shp.OnAction = macroName
         End If
     Next shp
-    
-    ' Also clean up old helper sheet and named ranges if they exist
+End Sub
+
+Private Sub CleanupLegacyHyperlinkArtifacts()
+    Dim nm As Name
+
     On Error Resume Next
     Application.DisplayAlerts = False
     ThisWorkbook.Worksheets("HyperlinkHelper").Delete
     Application.DisplayAlerts = True
-    
-    Dim nm As Name
+
     For Each nm In ThisWorkbook.Names
         If Left(nm.Name, 4) = "BTN_" Then
             nm.Delete
@@ -151,13 +153,20 @@ End Function
 
 Public Sub RemoveInfoTooltips()
     Dim ws As Worksheet
+    Dim count As Long
+    
+    count = 0
+    
+    For Each ws In ThisWorkbook.Worksheets
+        count = count + RemoveInfoTooltipsForSheet(ws)
+    Next ws
+    
+    MsgBox count & " info tooltips removed.", vbInformation
+End Sub
+
+Private Function RemoveInfoTooltipsForSheet(ws As Worksheet) As Long
     Dim shp As Shape
-    
-    On Error Resume Next
-    Set ws = ThisWorkbook.Worksheets("Inventory")
-    On Error GoTo 0
-    
-    If ws Is Nothing Then Exit Sub
+    Dim count As Long
     
     UnprotectSheet ws
     
@@ -167,16 +176,15 @@ Public Sub RemoveInfoTooltips()
             On Error Resume Next
             shp.Hyperlink.Delete
             On Error GoTo 0
+            count = count + 1
         End If
     Next shp
     
-    ' Also ensure main buttons have their macros
     CleanupMainButtons ws
-    
     ProtectSheet ws
     
-    MsgBox "Info tooltips removed.", vbInformation
-End Sub
+    RemoveInfoTooltipsForSheet = count
+End Function
 
 Public Sub DiagnoseShapes()
     Dim ws As Worksheet
@@ -185,39 +193,32 @@ Public Sub DiagnoseShapes()
     Dim filePath As String
     Dim fileNum As Integer
     
-    On Error Resume Next
-    Set ws = ThisWorkbook.Worksheets("Inventory")
-    On Error GoTo 0
-    
-    If ws Is Nothing Then
-        MsgBox "Inventory not found!", vbExclamation
-        Exit Sub
-    End If
-    
     msg = "SHAPE DIAGNOSIS" & vbCrLf
     msg = msg & "Date: " & Format(Now, "yyyy-mm-dd hh:nn:ss") & vbCrLf
     msg = msg & "================================================" & vbCrLf & vbCrLf
     
-    For Each shp In ws.Shapes
-        ' Only show buttons and info icons
-        If Left(shp.Name, 3) = "btn" Or Left(shp.Name, 5) = "Info_" Then
-            msg = msg & "Shape: " & shp.Name & vbCrLf
-            msg = msg & "  OnAction: [" & shp.OnAction & "]" & vbCrLf
-            
-            On Error Resume Next
-            Dim hlTip As String
-            hlTip = shp.Hyperlink.ScreenTip
-            If Err.Number = 0 Then
-                msg = msg & "  Hyperlink ScreenTip: [" & Left(hlTip, 40) & "...]" & vbCrLf
-            Else
-                msg = msg & "  Hyperlink:  NONE" & vbCrLf
+    For Each ws In ThisWorkbook.Worksheets
+        msg = msg & "Worksheet: " & ws.Name & vbCrLf
+        For Each shp In ws.Shapes
+            If Left(shp.Name, 3) = "btn" Or Left(shp.Name, 5) = "Info_" Then
+                msg = msg & "  Shape: " & shp.Name & vbCrLf
+                msg = msg & "    OnAction: [" & shp.OnAction & "]" & vbCrLf
+
+                On Error Resume Next
+                Dim hlTip As String
+                hlTip = shp.Hyperlink.ScreenTip
+                If Err.Number = 0 Then
+                    msg = msg & "    Hyperlink ScreenTip: [" & Left(hlTip, 40) & "... ]" & vbCrLf
+                Else
+                    msg = msg & "    Hyperlink:  NONE" & vbCrLf
+                End If
+                Err.Clear
+                On Error GoTo 0
+
+                msg = msg & vbCrLf
             End If
-            Err.Clear
-            On Error GoTo 0
-            
-            msg = msg & vbCrLf
-        End If
-    Next shp
+        Next shp
+    Next ws
     
     filePath = Environ("USERPROFILE") & "\Desktop\ShapeDiagnosis.txt"
     fileNum = FreeFile

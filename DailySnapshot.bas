@@ -148,10 +148,13 @@ Public Sub MaybeLogDailySnapshot()
     result = MaybeLogDailySnapshotWithReturn()
 End Sub
 
-' === PUBLIC: manually trigger a daily snapshot from a button ===
+' === PUBLIC: manually trigger a daily snapshot ===
 ' Uses the same logic as the automatic snapshot: skips if one already exists today,
 ' applies weekly/monthly notes when applicable.
 Public Sub ManualSnapshot()
+    ' === PASSWORD PROTECTION ===
+    If Not AuthorizeMacro("Manual Snapshot") Then Exit Sub
+
     Dim snapshotCreated As Boolean
     snapshotCreated = MaybeLogDailySnapshotWithReturn()
 
